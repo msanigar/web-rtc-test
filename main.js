@@ -10,19 +10,16 @@ class VideoChat {
     this.peerConnection = null;
     this.servers = {
       iceServers: [
-        {
-          urls: [
-            "stun:stun.vodafone.ro:3478",
-            "stun:stun.services.mozilla.com:3478",
-            "stun:stun.gmx.net:3478",
-            "stun:stun.nottingham.ac.uk:3478",
-            "stun:stun1.l.google.com",
-            "stun:stun2.l.google.com",
-            "stun:freestun.net:3479",
-            "stun:freestun.net:5350",
-            "stun:stun.l.google.com",
-          ],
-        },
+        // Detailed list of STUN servers
+        { urls: "stun:stun.vodafone.ro:3478" },
+        { urls: "stun:stun.services.mozilla.com:3478" },
+        { urls: "stun:stun.gmx.net:3478" },
+        { urls: "stun:stun.nottingham.ac.uk:3478" },
+        { urls: "stun:stun1.l.google.com" },
+        { urls: "stun:stun2.l.google.com" },
+        { urls: "stun:freestun.net:3479" },
+        { urls: "stun:freestun.net:5350" },
+        { urls: "stun:stun.l.google.com" },
       ],
     };
     this.constraints = {
@@ -42,27 +39,28 @@ class VideoChat {
 
   async init() {
     this.client = await AgoraRTM.createInstance(this.APP_ID);
+    console.log("RTM client initialized.");
     await this.client.login({ uid: this.uid, token: this.token });
+    console.log("Logged into Agora RTM system.");
 
     this.channel = this.client.createChannel(this.roomId);
     await this.channel.join();
+    console.log("Joined channel successfully.");
 
     this.channel.on("MemberJoined", this.handleUserJoined.bind(this));
     this.channel.on("MemberLeft", this.handleUserLeft.bind(this));
-
     this.client.on("MessageFromPeer", this.handleMessageFromPeer.bind(this));
 
     try {
       this.localStream = await navigator.mediaDevices.getUserMedia(
         this.constraints
       );
-      console.log("Local stream obtained successfully.");
       document.getElementById("user-1").srcObject = this.localStream;
+      document.getElementById("user-1").muted = true; // Mute the local video element to prevent echo
+      console.log("Local stream obtained and set.");
     } catch (error) {
       console.error("Error accessing media devices:", error);
     }
-    document.getElementById("user-1").srcObject = this.localStream;
-    document.getElementById("user-1").muted = true; // Mute the local video element to prevent echo
   }
 
   handleUserLeft(MemberId) {
@@ -100,21 +98,28 @@ class VideoChat {
 
   async createPeerConnection(MemberId) {
     this.peerConnection = new RTCPeerConnection(this.servers);
+    console.log("Peer connection created.");
 
     this.remoteStream = new MediaStream();
     document.getElementById("user-2").srcObject = this.remoteStream;
     document.getElementById("user-2").style.display = "block";
     document.getElementById("user-1").classList.add("smallFrame");
 
-    this.localStream.getTracks().forEach((track) => {
+    this.localStream.getTracks().forEach(track => {
       this.peerConnection.addTrack(track, this.localStream);
-    });
+      console.log(`Local track added: ${track.kind}`);
+  });
 
     this.peerConnection.ontrack = (event) => {
-      event.streams[0].getTracks().forEach((track) => {
-        this.remoteStream.addTrack(track);
+      if (!this.remoteStream) {
+          this.remoteStream = new MediaStream();
+          document.getElementById("user-2").srcObject = this.remoteStream;
+      }
+      event.streams[0].getTracks().forEach(track => {
+          this.remoteStream.addTrack(track);
+          console.log("Track added to remote stream:", track.kind);
       });
-    };
+  };
 
     this.peerConnection.oniceconnectionstatechange = () => {
       console.log(
