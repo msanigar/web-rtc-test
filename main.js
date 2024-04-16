@@ -44,6 +44,7 @@ class VideoChat {
 
         this.localStream = await navigator.mediaDevices.getUserMedia(this.constraints);
         document.getElementById('user-1').srcObject = this.localStream;
+        document.getElementById('user-1').muted = true;  // Mute the local video element to prevent echo
     }
 
     handleUserLeft(MemberId) {
