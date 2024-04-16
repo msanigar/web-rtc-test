@@ -68,21 +68,37 @@ class VideoChat {
     document.getElementById("user-1").classList.remove("smallFrame");
   }
 
+  processQueuedCandidates() {
+    while (this.queuedCandidates.length > 0) {
+      const candidate = this.queuedCandidates.shift();
+      this.peerConnection
+        .addIceCandidate(candidate)
+        .then(() => console.log("Queued candidate added successfully."))
+        .catch((error) =>
+          console.error("Failed to add queued candidate:", error)
+        );
+    }
+  }
+
   async handleMessageFromPeer(message, MemberId) {
     message = JSON.parse(message.text);
 
     if (message.type === "offer") {
       await this.createAnswer(MemberId, message.offer);
-    }
-    if (message.type === "answer") {
+    } else if (message.type === "answer") {
       await this.addAnswer(message.answer);
-    }
-    if (message.type === "candidate") {
+    } else if (message.type === "candidate") {
       let candidate = new RTCIceCandidate(message.candidate);
       if (this.peerConnection && this.peerConnection.remoteDescription) {
-        this.peerConnection.addIceCandidate(candidate);
+        try {
+          await this.peerConnection.addIceCandidate(candidate);
+          console.log("ICE candidate added:", candidate);
+        } catch (error) {
+          console.error("Failed to add ICE candidate:", error);
+        }
       } else {
         this.queuedCandidates.push(candidate);
+        console.log("ICE candidate queued:", candidate);
       }
     }
   }
@@ -105,21 +121,21 @@ class VideoChat {
     document.getElementById("user-2").style.display = "block";
     document.getElementById("user-1").classList.add("smallFrame");
 
-    this.localStream.getTracks().forEach(track => {
+    this.localStream.getTracks().forEach((track) => {
       this.peerConnection.addTrack(track, this.localStream);
       console.log(`Local track added: ${track.kind}`);
-  });
+    });
 
     this.peerConnection.ontrack = (event) => {
       if (!this.remoteStream) {
-          this.remoteStream = new MediaStream();
-          document.getElementById("user-2").srcObject = this.remoteStream;
+        this.remoteStream = new MediaStream();
+        document.getElementById("user-2").srcObject = this.remoteStream;
       }
-      event.streams[0].getTracks().forEach(track => {
-          this.remoteStream.addTrack(track);
-          console.log("Track added to remote stream:", track.kind);
+      event.streams[0].getTracks().forEach((track) => {
+        this.remoteStream.addTrack(track);
+        console.log("Track added to remote stream:", track.kind);
       });
-  };
+    };
 
     this.peerConnection.oniceconnectionstatechange = () => {
       console.log(
@@ -194,13 +210,13 @@ class VideoChat {
     console.log("Creating answer for offer from:", MemberId);
     await this.createPeerConnection(MemberId);
 
+    // Ensure the remote description is set before adding any ICE candidates
     await this.peerConnection.setRemoteDescription(
       new RTCSessionDescription(offer)
     );
     console.log("Remote description set to offer");
 
     let answer = await this.peerConnection.createAnswer();
-    console.log("Answer created:", answer);
     await this.peerConnection.setLocalDescription(answer);
     console.log("Local description set to answer");
 
@@ -210,6 +226,8 @@ class VideoChat {
       },
       MemberId
     );
+    // Now that the remote description is set, add any queued candidates
+    this.processQueuedCandidates();
   }
 
   async waitForStreamSetup() {
@@ -247,6 +265,7 @@ class VideoChat {
       const candidate = this.queuedCandidates.shift();
       this.peerConnection.addIceCandidate(candidate);
     }
+    this.processQueuedCandidates(); // Process any candidates that were queued
   }
 
   async leaveChannel() {
