@@ -11,7 +11,7 @@ class VideoChat {
     this.servers = {
       iceServers: [
         {
-          urls: ['stun:stun1.l.google.com:19302', 'stun:stun2.l.google.com:19302']
+          urls: ['STUN:stun.cloudflare.com:3478', 'stun:stun1.l.google.com:19302', 'stun:stun2.l.google.com:19302']
         }
       ]
     };
