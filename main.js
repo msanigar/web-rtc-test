@@ -11,9 +11,19 @@ class VideoChat {
     this.servers = {
       iceServers: [
         {
-          urls: ['STUN:freestun.net:3479', 'STUN:freestun.net:5350']
-        }
-      ]
+          urls: [
+            "stun:stun.vodafone.ro:3478",
+            "stun:stun.services.mozilla.com:3478",
+            "stun:stun.gmx.net:3478",
+            "stun:stun.nottingham.ac.uk:3478",
+            "stun:stun1.l.google.com",
+            "stun:stun2.l.google.com",
+            "stun:freestun.net:3479",
+            "stun:freestun.net:5350",
+            "stun:stun.l.google.com",
+          ],
+        },
+      ],
     };
     this.constraints = {
       video: {
@@ -79,7 +89,7 @@ class VideoChat {
       console.log("Local stream not ready when handling new user.");
       return;
     }
-    this.createOffer(MemberId);
+    await this.createOffer(MemberId);
   }
 
   async createPeerConnection(MemberId) {
