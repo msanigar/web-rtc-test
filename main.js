@@ -84,7 +84,14 @@ class VideoChat {
     message = JSON.parse(message.text);
 
     if (message.type === "offer") {
-      await this.createAnswer(MemberId, message.offer);
+      // Only create an answer if the local stream is ready.
+      if (this.localStream) {
+        await this.createAnswer(MemberId, message.offer);
+      } else {
+        console.log("Waiting for local stream before creating answer...");
+        await this.waitForStreamSetup();
+        await this.createAnswer(MemberId, message.offer);
+      }
     } else if (message.type === "answer") {
       await this.addAnswer(message.answer);
     } else if (message.type === "candidate") {
@@ -231,26 +238,30 @@ class VideoChat {
   }
 
   async waitForStreamSetup() {
-    let attempts = 0;
-    while (!this.localStream && attempts < 10) {
-      // Maximum 10 attempts
-      await new Promise((resolve) => setTimeout(resolve, 500)); // Wait for 500 ms
-      try {
-        this.localStream = await navigator.mediaDevices.getUserMedia(
-          this.constraints
-        );
-        document.getElementById("user-1").srcObject = this.localStream;
-      } catch (error) {
-        console.error("Failed to get local stream on retry:", error);
-        attempts++;
+    if (this.localStream) {
+      return Promise.resolve();
+    }
+
+    return new Promise(async (resolve, reject) => {
+      let attempts = 0;
+      while (!this.localStream && attempts < 10) {
+        // Wait for 500 ms
+        await new Promise((resolve) => setTimeout(resolve, 500));
+        try {
+          this.localStream = await navigator.mediaDevices.getUserMedia(
+            this.constraints
+          );
+          document.getElementById("user-1").srcObject = this.localStream;
+          resolve();
+        } catch (error) {
+          console.error("Failed to get local stream on retry:", error);
+          attempts++;
+          if (attempts >= 10) {
+            reject(error);
+          }
+        }
       }
-    }
-    if (!this.localStream) {
-      console.error("Failed to setup local stream after retries.");
-      alert(
-        "Unable to access your camera/microphone. Please check permission settings and hardware."
-      );
-    }
+    });
   }
 
   async addAnswer(answer) {
@@ -261,10 +272,6 @@ class VideoChat {
     await this.peerConnection.setRemoteDescription(
       new RTCSessionDescription(answer)
     );
-    while (this.queuedCandidates.length > 0) {
-      const candidate = this.queuedCandidates.shift();
-      this.peerConnection.addIceCandidate(candidate);
-    }
     this.processQueuedCandidates(); // Process any candidates that were queued
   }
 
