@@ -52,9 +52,15 @@ class VideoChat {
 
     this.client.on("MessageFromPeer", this.handleMessageFromPeer.bind(this));
 
-    this.localStream = await navigator.mediaDevices.getUserMedia(
-      this.constraints
-    );
+    try {
+      this.localStream = await navigator.mediaDevices.getUserMedia(
+        this.constraints
+      );
+      console.log("Local stream obtained successfully.");
+      document.getElementById("user-1").srcObject = this.localStream;
+    } catch (error) {
+      console.error("Error accessing media devices:", error);
+    }
     document.getElementById("user-1").srcObject = this.localStream;
     document.getElementById("user-1").muted = true; // Mute the local video element to prevent echo
   }
@@ -110,13 +116,36 @@ class VideoChat {
       });
     };
 
+    this.peerConnection.oniceconnectionstatechange = () => {
+      console.log(
+        `ICE Connection State Change: ${this.peerConnection.iceConnectionState}`
+      );
+      if (this.peerConnection.iceConnectionState === "failed") {
+        console.error(
+          "ICE Connection has failed. Check network or STUN/TURN configurations."
+        );
+      }
+    };
+
     this.peerConnection.onicecandidate = (event) => {
       if (event.candidate) {
+        // Send each candidate to the remote peer as soon as it's available
         this.client.sendMessageToPeer(
           {
             text: JSON.stringify({
               type: "candidate",
               candidate: event.candidate,
+            }),
+          },
+          MemberId
+        );
+      } else {
+        // ICE gathering has finished
+        console.log("ICE gathering state complete");
+        this.client.sendMessageToPeer(
+          {
+            text: JSON.stringify({
+              type: "endOfCandidates",
             }),
           },
           MemberId
@@ -135,10 +164,13 @@ class VideoChat {
       console.log("Local stream not ready when creating offer.");
       return;
     }
+    console.log("Creating offer for member:", MemberId);
     await this.createPeerConnection(MemberId);
 
     let offer = await this.peerConnection.createOffer();
+    console.log("Offer created:", offer);
     await this.peerConnection.setLocalDescription(offer);
+    console.log("Local description set to offer");
 
     this.client.sendMessageToPeer(
       {
@@ -150,18 +182,22 @@ class VideoChat {
 
   async createAnswer(MemberId, offer) {
     if (!this.localStream) {
-      console.log("Local stream not ready when creating answer. Retrying...");
+      console.log("Local stream not ready when creating answer.");
       await this.waitForStreamSetup();
-      return this.createAnswer(MemberId, offer); // Retry creating an answer once the stream is ready
+      return this.createAnswer(MemberId, offer);
     }
+    console.log("Creating answer for offer from:", MemberId);
     await this.createPeerConnection(MemberId);
 
     await this.peerConnection.setRemoteDescription(
       new RTCSessionDescription(offer)
     );
+    console.log("Remote description set to offer");
 
     let answer = await this.peerConnection.createAnswer();
+    console.log("Answer created:", answer);
     await this.peerConnection.setLocalDescription(answer);
+    console.log("Local description set to answer");
 
     this.client.sendMessageToPeer(
       {
