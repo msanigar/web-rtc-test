@@ -8,9 +8,12 @@ class VideoChat {
     this.localStream = null;
     this.remoteStream = null;
     this.peerConnection = null;
+    this.queuedCandidates = [];
+    this.isRemoteDescriptionSet = false; // Flag to track if remote description is set
+
     this.servers = {
       iceServers: [
-        // Detailed list of STUN servers
+        // List of STUN servers
         { urls: "stun:stun.vodafone.ro:3478" },
         { urls: "stun:stun.services.mozilla.com:3478" },
         { urls: "stun:stun.gmx.net:3478" },
@@ -33,7 +36,6 @@ class VideoChat {
     if (!this.roomId) {
       window.location = "lobby.html";
     }
-    this.queuedCandidates = [];
     this.init();
   }
 
@@ -72,41 +74,68 @@ class VideoChat {
     while (this.queuedCandidates.length > 0) {
       const candidate = this.queuedCandidates.shift();
       this.peerConnection
-        .addIceCandidate(candidate)
-        .then(() => console.log("Queued candidate added successfully."))
-        .catch((error) =>
-          console.error("Failed to add queued candidate:", error)
-        );
+        .addIceCandidate(new RTCIceCandidate(candidate))
+        .then(() =>
+          console.log("ICE candidate added successfully:", candidate.candidate)
+        )
+        .catch((e) => console.error("Failed to add ICE candidate:", e));
     }
   }
 
   async handleMessageFromPeer(message, MemberId) {
-    message = JSON.parse(message.text);
+    const msg = JSON.parse(message.text);
+    switch (msg.type) {
+      case "offer":
+        await this.handleOffer(msg.offer, MemberId);
+        break;
+      case "answer":
+        await this.handleAnswer(msg.answer);
+        break;
+      case "candidate":
+        await this.handleCandidate(msg.candidate);
+        break;
+    }
+  }
 
-    if (message.type === "offer") {
-      // Only create an answer if the local stream is ready.
-      if (this.localStream) {
-        await this.createAnswer(MemberId, message.offer);
-      } else {
-        console.log("Waiting for local stream before creating answer...");
-        await this.waitForStreamSetup();
-        await this.createAnswer(MemberId, message.offer);
-      }
-    } else if (message.type === "answer") {
-      await this.addAnswer(message.answer);
-    } else if (message.type === "candidate") {
-      let candidate = new RTCIceCandidate(message.candidate);
-      if (this.peerConnection && this.peerConnection.remoteDescription) {
-        try {
-          await this.peerConnection.addIceCandidate(candidate);
-          console.log("ICE candidate added:", candidate);
-        } catch (error) {
-          console.error("Failed to add ICE candidate:", error);
-        }
-      } else {
-        this.queuedCandidates.push(candidate);
-        console.log("ICE candidate queued:", candidate);
-      }
+  async handleOffer(offer, MemberId) {
+    if (!this.localStream) {
+      console.log("Local stream not ready when handling offer.");
+      await this.waitForStreamSetup();
+    }
+    console.log("Handling offer from Member:", MemberId);
+    await this.createPeerConnection(MemberId);
+    await this.peerConnection.setRemoteDescription(
+      new RTCSessionDescription(offer)
+    );
+    this.isRemoteDescriptionSet = true; // Set the flag
+    this.processQueuedCandidates(); // Process any queued candidates
+
+    const answer = await this.peerConnection.createAnswer();
+    await this.peerConnection.setLocalDescription(answer);
+    this.client.sendMessageToPeer(
+      { text: JSON.stringify({ type: "answer", answer }) },
+      MemberId
+    );
+  }
+
+  async handleAnswer(answer) {
+    if (!this.peerConnection) {
+      console.log("Peer connection not established when handling answer.");
+      return;
+    }
+    await this.peerConnection.setRemoteDescription(
+      new RTCSessionDescription(answer)
+    );
+    this.isRemoteDescriptionSet = true; // Set the flag
+    this.processQueuedCandidates(); // Process any queued candidates
+  }
+
+  async handleCandidate(candidate) {
+    if (this.peerConnection && this.isRemoteDescriptionSet) {
+      await this.peerConnection.addIceCandidate(new RTCIceCandidate(candidate));
+    } else {
+      this.queuedCandidates.push(candidate);
+      console.log("ICE candidate queued:", candidate);
     }
   }
 
