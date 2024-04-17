@@ -14,7 +14,7 @@ let channel;
 
 const queryString = window.location.search;
 const urlParams = new URLSearchParams(queryString);
-let roomId = urlParams.get("room").toLocaleLowerCase();
+let roomId = urlParams.get("room")?.toLowerCase();
 
 if (!roomId) {
   window.location = "index.html";
