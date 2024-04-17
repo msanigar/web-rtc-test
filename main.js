@@ -468,6 +468,8 @@ class VideoChat {
   async switchMic() {
     const micList = document.getElementById("micList");
     const deviceId = micList.value;
+    const isMuted = this.localStream.getAudioTracks()[0].enabled;
+
     const newConstraints = {
       audio: { deviceId: { exact: deviceId } },
       video: true,
@@ -478,6 +480,7 @@ class VideoChat {
         newConstraints
       );
       const newAudioTrack = newStream.getAudioTracks()[0];
+      newAudioTrack.enabled = isMuted;
 
       this.peerConnection.getSenders().forEach((sender) => {
         if (sender.track.kind === "audio") {
