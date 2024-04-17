@@ -14,10 +14,10 @@ let channel;
 
 const queryString = window.location.search;
 const urlParams = new URLSearchParams(queryString);
-let roomId = urlParams.get("room");
+let roomId = urlParams.get("room").toLocaleLowerCase();
 
 if (!roomId) {
-  roomId = "main";
+  window.location = "index.html";
 }
 
 let displayName = sessionStorage.getItem("display_name");
@@ -203,7 +203,7 @@ let leaveStream = async (e) => {
   setTimeout(() => {
     window.location = "index.html";
   }, 1000);
-  
+
 };
 
 document.getElementById("camera-btn").addEventListener("click", toggleCamera);

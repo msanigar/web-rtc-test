@@ -10,9 +10,10 @@ form.addEventListener("submit", (e) => {
 
   sessionStorage.setItem("display_name", e.target.name.value);
 
-  let inviteCode = e.target.room.value;
-  if (!inviteCode) {
-    inviteCode = String(Math.floor(Math.random() * 10000));
+  let roomName = e.target.room.value;
+  if (!roomName) {
+    roomName = String(Math.floor(Math.random() * 10000));
   }
-  window.location = `room.html?room=${inviteCode}`;
+  let roomNameLower = roomName.toLowerCase();
+  window.location = `room.html?room=${roomNameLower}`;
 });
