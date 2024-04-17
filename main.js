@@ -13,15 +13,38 @@ class VideoChat {
 
     this.servers = {
       iceServers: [
-        { urls: "stun:stun.vodafone.ro:3478" },
-        { urls: "stun:stun.services.mozilla.com:3478" },
-        { urls: "stun:stun.gmx.net:3478" },
-        { urls: "stun:stun.nottingham.ac.uk:3478" },
-        { urls: "stun:stun1.l.google.com" },
-        { urls: "stun:stun2.l.google.com" },
-        { urls: "stun:freestun.net:3479" },
-        { urls: "stun:freestun.net:5350" },
-        { urls: "stun:stun.l.google.com" },
+        // { urls: "stun:stun.vodafone.ro:3478" },
+        // { urls: "stun:stun.services.mozilla.com:3478" },
+        // { urls: "stun:stun.gmx.net:3478" },
+        // { urls: "stun:stun.nottingham.ac.uk:3478" },
+        // { urls: "stun:stun1.l.google.com" },
+        // { urls: "stun:stun2.l.google.com" },
+        // { urls: "stun:freestun.net:3479" },
+        // { urls: "stun:freestun.net:5350" },
+        // { urls: "stun:stun.l.google.com" },
+        {
+          urls: "stun:stun.relay.metered.ca:80",
+        },
+        {
+          urls: "turn:global.relay.metered.ca:80",
+          username: "5a0fbfecdc7ac35f2d2706da",
+          credential: "v8RfUDfGLXn1Ji7q",
+        },
+        {
+          urls: "turn:global.relay.metered.ca:80?transport=tcp",
+          username: "5a0fbfecdc7ac35f2d2706da",
+          credential: "v8RfUDfGLXn1Ji7q",
+        },
+        {
+          urls: "turn:global.relay.metered.ca:443",
+          username: "5a0fbfecdc7ac35f2d2706da",
+          credential: "v8RfUDfGLXn1Ji7q",
+        },
+        {
+          urls: "turns:global.relay.metered.ca:443?transport=tcp",
+          username: "5a0fbfecdc7ac35f2d2706da",
+          credential: "v8RfUDfGLXn1Ji7q",
+        },
       ],
     };
     this.constraints = {
