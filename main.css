@@ -74,15 +74,15 @@
     width: 20px;
   }
 
-  #cameraList,
-  #micList {
+  #camera-selector,
+  #mic-selector {
     display: none;
   }
 }
 
 @media screen and (min-width: 600px) {
-  #cameraList,
-  #micList {
+  #camera-selector,
+  #mic-selector {
     display: inline-block;
   }
 }
