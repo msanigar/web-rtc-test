@@ -9,11 +9,10 @@ class VideoChat {
     this.remoteStream = null;
     this.peerConnection = null;
     this.queuedCandidates = [];
-    this.isRemoteDescriptionSet = false; // Flag to track if remote description is set
+    this.isRemoteDescriptionSet = false;
 
     this.servers = {
       iceServers: [
-        // List of STUN servers
         { urls: "stun:stun.vodafone.ro:3478" },
         { urls: "stun:stun.services.mozilla.com:3478" },
         { urls: "stun:stun.gmx.net:3478" },
@@ -41,13 +40,9 @@ class VideoChat {
 
   async init() {
     this.client = await AgoraRTM.createInstance(this.APP_ID);
-    console.log("RTM client initialized.");
     await this.client.login({ uid: this.uid, token: this.token });
-    console.log("Logged into Agora RTM system.");
-
     this.channel = this.client.createChannel(this.roomId);
     await this.channel.join();
-    console.log("Joined channel successfully.");
 
     this.channel.on("MemberJoined", this.handleUserJoined.bind(this));
     this.channel.on("MemberLeft", this.handleUserLeft.bind(this));
@@ -59,11 +54,11 @@ class VideoChat {
       );
       document.getElementById("user-1").srcObject = this.localStream;
       document.getElementById("user-1").muted = true; // Mute the local video element to prevent echo
-      console.log("Local stream obtained and set.");
+      this.updateCameraList(); // Populate the camera list at initialization
+      this.updateMicList(); // Populate the microphone list at initialization
     } catch (error) {
       console.error("Error accessing media devices:", error);
     }
-    this.updateCameraList(); // Populate the camera list
   }
 
   handleUserLeft(MemberId) {
@@ -383,15 +378,15 @@ class VideoChat {
       const videoInputs = devices.filter(
         (device) => device.kind === "videoinput"
       );
-
       const cameraList = document.getElementById("cameraList");
-      cameraList.innerHTML = ""; // Clear existing options
-      videoInputs.forEach((device, index) => {
-        const option = document.createElement("option");
-        option.value = device.deviceId;
-        option.text = device.label || `Camera ${index + 1}`;
-        cameraList.appendChild(option);
-      });
+      cameraList.innerHTML = videoInputs
+        .map(
+          (device) =>
+            `<option value="${device.deviceId}">${
+              device.label || "Camera"
+            }</option>`
+        )
+        .join("");
     } catch (error) {
       console.error("Could not populate camera list:", error);
     }
@@ -403,15 +398,15 @@ class VideoChat {
       const audioInputs = devices.filter(
         (device) => device.kind === "audioinput"
       );
-
       const micList = document.getElementById("micList");
-      micList.innerHTML = ""; // Clear existing options
-      audioInputs.forEach((device, index) => {
-        const option = document.createElement("option");
-        option.value = device.deviceId;
-        option.text = device.label || `Mic ${index + 1}`;
-        micList.appendChild(option);
-      });
+      micList.innerHTML = audioInputs
+        .map(
+          (device) =>
+            `<option value="${device.deviceId}">${
+              device.label || "Microphone"
+            }</option>`
+        )
+        .join("");
     } catch (error) {
       console.error("Could not populate mic list:", error);
     }
