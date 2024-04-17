@@ -438,15 +438,27 @@ class VideoChat {
   async switchCamera() {
     const cameraList = document.getElementById("cameraList");
     const deviceId = cameraList.value;
-    const constraints = {
+    const newConstraints = {
       video: { deviceId: { exact: deviceId } },
       audio: true,
     };
 
     try {
-      const stream = await navigator.mediaDevices.getUserMedia(constraints);
-      this.localStream.getTracks().forEach((track) => track.stop()); // Stop the old stream
-      this.localStream = stream;
+      const newStream = await navigator.mediaDevices.getUserMedia(
+        newConstraints
+      );
+      const newVideoTrack = newStream.getVideoTracks()[0];
+
+      this.peerConnection.getSenders().forEach((sender) => {
+        if (sender.track.kind === "video") {
+          sender.replaceTrack(newVideoTrack);
+        }
+      });
+
+      this.localStream.getVideoTracks().forEach((track) => track.stop());
+      this.localStream.removeTrack(this.localStream.getVideoTracks()[0]);
+      this.localStream.addTrack(newVideoTrack);
+
       document.getElementById("user-1").srcObject = this.localStream;
     } catch (error) {
       console.error("Error switching cameras:", error);
@@ -456,16 +468,33 @@ class VideoChat {
   async switchMic() {
     const micList = document.getElementById("micList");
     const deviceId = micList.value;
-    const constraints = {
+    const newConstraints = {
       audio: { deviceId: { exact: deviceId } },
       video: true,
     };
 
     try {
-      const stream = await navigator.mediaDevices.getUserMedia(constraints);
-      this.localStream.getTracks().forEach((track) => track.stop()); // Stop the old stream
-      this.localStream = stream;
-      document.getElementById("user-1").srcObject = this.localStream;
+      const newStream = await navigator.mediaDevices.getUserMedia(
+        newConstraints
+      );
+      const newAudioTrack = newStream.getAudioTracks()[0];
+
+      this.peerConnection.getSenders().forEach((sender) => {
+        if (sender.track.kind === "audio") {
+          sender
+            .replaceTrack(newAudioTrack)
+            .then(() => {
+              console.log("Microphone has been switched successfully.");
+            })
+            .catch((e) => {
+              console.error("Failed to replace audio track: ", e);
+            });
+        }
+      });
+
+      this.localStream.getAudioTracks().forEach((track) => track.stop());
+      this.localStream.removeTrack(this.localStream.getAudioTracks()[0]);
+      this.localStream.addTrack(newAudioTrack);
     } catch (error) {
       console.error("Error switching microphones:", error);
     }
