@@ -174,14 +174,38 @@ class VideoChat {
       });
     };
 
+    this.peerConnection.onicecandidateerror = function(event) {
+      console.error('ICE candidate error:', event);
+      // Log or display error details
+      console.error("Error Code: " + event.errorCode);
+      console.error("Error Text: " + event.errorText);
+      console.error("URL: " + event.url);
+  };
+
     this.peerConnection.oniceconnectionstatechange = () => {
-      console.log(
-        `ICE Connection State Change: ${this.peerConnection.iceConnectionState}`
-      );
-      if (this.peerConnection.iceConnectionState === "failed") {
-        console.error(
-          "ICE Connection has failed. Check network or STUN/TURN configurations."
-        );
+      console.log('ICE Connection State Change:', this.peerConnection.iceConnectionState);
+      switch(this.peerConnection.iceConnectionState) {
+          case "new":
+              console.log("ICE state is 'new': gathering is ongoing.");
+              break;
+          case "checking":
+              console.log("ICE state is 'checking': checking connectivity.");
+              break;
+          case "connected":
+              console.log("ICE state is 'connected': at least one working candidate pair.");
+              break;
+          case "completed":
+              console.log("ICE state is 'completed': all candidates successfully paired.");
+              break;
+          case "failed":
+              console.error("ICE state is 'failed': failed to establish a connection.");
+              break;
+          case "disconnected":
+              console.error("ICE state is 'disconnected': previously connected pair is now disconnected.");
+              break;
+          case "closed":
+              console.log("ICE state is 'closed': ICE agent is shut down.");
+              break;
       }
     };
 
@@ -362,9 +386,47 @@ class VideoChat {
     }
   }
 
+  async updateMicList() {
+    try {
+      const devices = await navigator.mediaDevices.enumerateDevices();
+      const audioInputs = devices.filter(
+        (device) => device.kind === "audioinput"
+      );
+
+      const micList = document.getElementById("micList");
+      micList.innerHTML = ""; // Clear existing options
+      audioInputs.forEach((device, index) => {
+        const option = document.createElement("option");
+        option.value = device.deviceId;
+        option.text = device.label || `Mic ${index + 1}`;
+        micList.appendChild(option);
+      });
+    } catch (error) {
+      console.error("Could not populate mic list:", error);
+    }
+  }
+
   async switchCamera() {
     const cameraList = document.getElementById("cameraList");
     const deviceId = cameraList.value;
+    const constraints = {
+      video: { deviceId: { exact: deviceId } },
+      audio: true,
+    };
+
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia(constraints);
+      this.localStream.getTracks().forEach((track) => track.stop()); // Stop the old stream
+      this.localStream = stream;
+      document.getElementById("user-1").srcObject = this.localStream;
+    } catch (error) {
+      console.error("Error switching cameras:", error);
+    }
+  }
+
+  async switchMic() {
+    const micList = document.getElementById("micList");
+    const deviceId = micList.value;
     const constraints = {
       video: { deviceId: { exact: deviceId } },
       audio: true,
@@ -387,6 +449,10 @@ window.addEventListener("beforeunload", () => videoChat.leaveChannel());
 document
   .getElementById("cameraList")
   .addEventListener("change", () => videoChat.switchCamera());
+
+  document
+  .getElementById("micList")
+  .addEventListener("change", () => videoChat.switchMic());
 
 document
   .getElementById("camera-btn")
