@@ -1,0 +1,135 @@
+@import url("https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;600;700;800&display=swap");
+
+* {
+  font-family: "Roboto", sans-serif;
+}
+
+::-webkit-scrollbar {
+  width: 7px;
+}
+
+::-webkit-scrollbar-track {
+  box-shadow: inset 0 0 5px grey;
+  border-radius: 10px;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #262626;
+  border-radius: 10px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #845695;
+}
+
+body {
+  background-color: #1a1a1a;
+  color: #fff;
+
+  font-size: 14px;
+  padding: 0;
+  margin: 0;
+  box-sizing: border-box;
+}
+
+p,
+a {
+  font-weight: 300;
+}
+
+.avatar__md {
+  height: 40px;
+  width: 40px;
+  object-fit: cover;
+  border-radius: 50%;
+}
+
+.avatar__sm {
+  height: 30px;
+  width: 30px;
+  object-fit: cover;
+  border-radius: 50%;
+}
+
+#nav {
+  position: fixed;
+  top: 0;
+  width: 100%;
+  box-sizing: border-box;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 1px solid #000000;
+  background-color: #1a1a1a;
+  text-decoration: none;
+  padding: 16px 5%;
+  z-index: 999;
+}
+
+#nav a {
+  text-decoration: none;
+}
+
+#nav__links {
+  display: flex;
+  align-items: center;
+  column-gap: 2em;
+}
+
+@media (max-width: 520px) {
+  #nav__links {
+    column-gap: 3em;
+  }
+}
+
+#create__room__btn {
+  display: block;
+  background-color: #845695;
+  padding: 8px 24px;
+  font-size: 14px;
+  font-weight: 500;
+  border-radius: 5px;
+}
+
+#create__room__btn:hover {
+  background-color: #845695;
+}
+
+.nav--list {
+  display: flex;
+  gap: 1rem;
+  align-items: center;
+}
+
+#members__button,
+#chat__button {
+  display: none;
+  cursor: pointer;
+  background: transparent;
+  border: none;
+}
+
+#members__button:hover svg > path,
+#chat__button:hover svg {
+  fill: #845695;
+}
+
+@media (max-width: 640px) {
+  #members__button {
+    display: block;
+  }
+  #create__room__btn {
+    font-size: 0;
+    border: none;
+  }
+
+  #create__room__btn {
+    padding: 0;
+    background-color: transparent;
+    border-radius: 50%;
+  }
+
+  #create__room__btn:hover {
+    background-color: transparent;
+  }
+}
