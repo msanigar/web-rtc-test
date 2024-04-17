@@ -199,7 +199,11 @@ let leaveStream = async (e) => {
   channel.sendMessage({
     text: JSON.stringify({ type: "user_left", uid: uid }),
   });
-  window.location = "index.html";
+
+  setTimeout(() => {
+    window.location = "index.html";
+  }, 1000);
+  
 };
 
 document.getElementById("camera-btn").addEventListener("click", toggleCamera);
