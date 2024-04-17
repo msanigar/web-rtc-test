@@ -63,6 +63,7 @@ class VideoChat {
     } catch (error) {
       console.error("Error accessing media devices:", error);
     }
+    this.updateCameraList(); // Populate the camera list
   }
 
   handleUserLeft(MemberId) {
@@ -340,11 +341,53 @@ class VideoChat {
       );
     }
   }
+
+  async updateCameraList() {
+    try {
+      const devices = await navigator.mediaDevices.enumerateDevices();
+      const videoInputs = devices.filter(
+        (device) => device.kind === "videoinput"
+      );
+
+      const cameraList = document.getElementById("cameraList");
+      cameraList.innerHTML = ""; // Clear existing options
+      videoInputs.forEach((device, index) => {
+        const option = document.createElement("option");
+        option.value = device.deviceId;
+        option.text = device.label || `Camera ${index + 1}`;
+        cameraList.appendChild(option);
+      });
+    } catch (error) {
+      console.error("Could not populate camera list:", error);
+    }
+  }
+
+  async switchCamera() {
+    const cameraList = document.getElementById("cameraList");
+    const deviceId = cameraList.value;
+    const constraints = {
+      video: { deviceId: { exact: deviceId } },
+      audio: true,
+    };
+
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia(constraints);
+      this.localStream.getTracks().forEach((track) => track.stop()); // Stop the old stream
+      this.localStream = stream;
+      document.getElementById("user-1").srcObject = this.localStream;
+    } catch (error) {
+      console.error("Error switching cameras:", error);
+    }
+  }
 }
 
 // Event listeners and instance creation
 const videoChat = new VideoChat("05e0a4c74bfb4211ab5afb2d41b25691");
 window.addEventListener("beforeunload", () => videoChat.leaveChannel());
+document
+  .getElementById("cameraList")
+  .addEventListener("change", () => videoChat.switchCamera());
+
 document
   .getElementById("camera-btn")
   .addEventListener("click", () => videoChat.toggleCamera());
