@@ -50,13 +50,13 @@ let joinRoomInit = async () => {
   client = AgoraRTC.createClient({ mode: "rtc", codec: "vp8" });
   await client.join(APP_ID, roomId, token, uid);
 
-  joinStream();
+  joinStream(true);
 
   client.on("user-published", handleUserPublished);
   client.on("user-left", handleUserLeft);
 };
 
-let joinStream = async () => {
+let joinStream = async (isLocal = false) => {
   document.getElementsByClassName("stream__actions")[0].style.display = "flex";
 
   localTracks = await AgoraRTC.createMicrophoneAndCameraTracks(
@@ -75,25 +75,23 @@ let joinStream = async () => {
     }
   );
 
-  let player = `<div class="video__container" id="user-container-${uid}">
-                    <div class="video-player" id="user-${uid}"></div>
-                 </div>`;
+  let player;
 
+  if (isLocal) {
+    player =  `<div class="video-player local-stream" id="user-${uid}"></div>`
+  } else {
+    player = `<div class="video-player" id="user-${uid}"></div>`
+  }
   document
     .getElementById("streams__container")
-    .insertAdjacentHTML("beforeend", player);
-  document
-    .getElementById(`user-container-${uid}`)
-    .addEventListener("click", expandVideoFrame);
+    .insertAdjacentHTML("afterbegin", player);
 
   localTracks[1].play(`user-${uid}`);
   await client.publish([localTracks[0], localTracks[1]]);
 };
 
 let switchToCamera = async () => {
-  let player = `<div class="video__container" id="user-container-${uid}">
-                    <div class="video-player" id="user-${uid}"></div>
-                 </div>`;
+  let player = `<div class="video-player" id="user-${uid}"></div>`;
   displayFrame.insertAdjacentHTML("beforeend", player);
 
   await localTracks[0];
@@ -110,24 +108,13 @@ let handleUserPublished = async (user, mediaType) => {
 
   await client.subscribe(user, mediaType);
 
-  let player = document.getElementById(`user-container-${user.uid}`);
+  let player = document.getElementById(`user-${user.uid}`);
   if (player === null) {
-    player = `<div class="video__container" id="user-container-${user.uid}">
-                <div class="video-player" id="user-${user.uid}"></div>
-            </div>`;
+    player = `<div class="video-player" id="user-${user.uid}"></div>`;
 
     document
       .getElementById("streams__container")
       .insertAdjacentHTML("beforeend", player);
-    document
-      .getElementById(`user-container-${user.uid}`)
-      .addEventListener("click", expandVideoFrame);
-  }
-
-  if (displayFrame.style.display) {
-    let videoFrame = document.getElementById(`user-container-${user.uid}`);
-    videoFrame.style.height = "100px";
-    videoFrame.style.width = "100px";
   }
 
   if (mediaType === "video") {
@@ -137,24 +124,18 @@ let handleUserPublished = async (user, mediaType) => {
   if (mediaType === "audio") {
     user.audioTrack.play();
   }
+
 };
 
 let handleUserLeft = async (user) => {
   delete remoteUsers[user.uid];
-  let item = document.getElementById(`user-container-${user.uid}`);
+  let item = document.getElementById(`user-${user.uid}`);
   if (item) {
     item.remove();
   }
 
-  if (userIdInDisplayFrame === `user-container-${user.uid}`) {
+  if (userIdInDisplayFrame === `user-${user.uid}`) {
     displayFrame.style.display = null;
-
-    let videoFrames = document.getElementsByClassName("video__container");
-
-    for (let i = 0; videoFrames.length > i; i++) {
-      videoFrames[i].style.height = "300px";
-      videoFrames[i].style.width = "300px";
-    }
   }
 };
 
@@ -195,35 +176,26 @@ let toggleScreen = async (e) => {
 
         localScreenTracks = await AgoraRTC.createScreenVideoTrack()
 
-        document.getElementById(`user-container-${uid}`).remove()
+        document.getElementById(`user-${uid}`).remove()
         displayFrame.style.display = 'block'
 
-        let player = `<div class="video__container" id="user-container-${uid}">
+        let player = `<div class="video__container" id="user-${uid}">
                 <div class="video-player" id="user-${uid}"></div>
             </div>`
 
         displayFrame.insertAdjacentHTML('beforeend', player)
-        document.getElementById(`user-container-${uid}`).addEventListener('click', expandVideoFrame)
 
-        userIdInDisplayFrame = `user-container-${uid}`
+        userIdInDisplayFrame = `user-${uid}`
         localScreenTracks.play(`user-${uid}`)
 
         await client.unpublish([localTracks[1]])
         await client.publish([localScreenTracks])
 
-        let videoFrames = document.getElementsByClassName('video__container')
-        for(let i = 0; videoFrames.length > i; i++){
-            if(videoFrames[i].id != userIdInDisplayFrame){
-              videoFrames[i].style.height = '100px'
-              videoFrames[i].style.width = '100px'
-            }
-          }
-
 
     }else{
         sharingScreen = false 
         cameraButton.style.display = 'block'
-        document.getElementById(`user-container-${uid}`).remove()
+        document.getElementById(`user-${uid}`).remove()
         await client.unpublish([localScreenTracks])
 
         switchToCamera()
@@ -242,15 +214,10 @@ let leaveStream = async (e) => {
 
   await client.unpublish([localTracks[0], localTracks[1]]);
 
-  document.getElementById(`user-container-${uid}`).remove();
+  document.getElementById(`user-${uid}`).remove();
 
-  if (userIdInDisplayFrame === `user-container-${uid}`) {
+  if (userIdInDisplayFrame === `user-${uid}`) {
     displayFrame.style.display = null;
-
-    for (let i = 0; videoFrames.length > i; i++) {
-      videoFrames[i].style.height = "300px";
-      videoFrames[i].style.width = "300px";
-    }
   }
 
   channel.sendMessage({

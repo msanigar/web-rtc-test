@@ -193,11 +193,6 @@
 }
 
 #streams__container{
-  display: flex;
-  flex-wrap: wrap;
-  gap: 2em;
-  justify-content: center;
-  align-items: center;
   margin-top: 25px;
   margin-bottom: 225px;
 }
@@ -207,7 +202,6 @@
   justify-content: center;
   align-items: center;
   border:2px solid #b366f9;
-  border-radius: 50%;
   cursor: pointer;
   overflow: hidden;
   height: 300px;
@@ -217,10 +211,6 @@
 .video-player{
   height: 100%;
   width: 100%;
-}
-
-.video-player video{
-  border-radius: 50%;
 }
 
 @media (max-width: 1400px) {
@@ -332,4 +322,58 @@
 
 h3.title {
   color: #845695;
+}
+
+.video-player div {
+  position: inherit !important;
+}
+
+.local-stream div video {
+  position: inherit !important;;
+}
+
+#streams__container {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(640px, 1fr));
+  gap: 10px;
+  padding: 10px;
+  width: 100%;
+  height: 100vh; /* Adjust based on your design needs */
+  align-items: center;
+  justify-content: center;
+}
+
+.video-player {
+  width: 100%;
+  height: 100%;
+  aspect-ratio: 16 / 9;
+  overflow: hidden;
+  border-radius: 8px;
+}
+
+.video-player div video {
+  position: inherit !important;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+#streams__container.focus-single {
+  grid-template-columns: 1fr;
+}
+
+#streams__container.focus-single .video-player {
+  height: 80vh; /* Smaller if you want other elements visible */
+}
+
+#streams__container.small-preview {
+  grid-template-rows: 1fr auto;
+}
+
+#streams__container.small-preview .video-player {
+  height: calc(100vh - 120px);
+}
+
+#streams__container.small-preview .video-player.small {
+  height: 100px; /* Fixed height for small preview */
 }

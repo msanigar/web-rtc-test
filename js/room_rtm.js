@@ -58,9 +58,9 @@ let handleChannelMessage = async (messageData, MemberId) => {
   }
 
   if (data.type === "user_left") {
-    document.getElementById(`user-container-${data.uid}`).remove();
+    document.getElementById(`user-${data.uid}`).remove();
 
-    if (userIdInDisplayFrame === `user-container-${uid}`) {
+    if (userIdInDisplayFrame === `user-${uid}`) {
       displayFrame.style.display = null;
 
       for (let i = 0; videoFrames.length > i; i++) {
