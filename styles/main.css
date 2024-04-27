@@ -103,10 +103,9 @@ a {
 
 #members__button,
 #chat__button {
-  display: none;
   cursor: pointer;
-  background: transparent;
   border: none;
+  background: transparent;
 }
 
 #members__button:hover svg > path,

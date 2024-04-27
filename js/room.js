@@ -13,7 +13,7 @@ memberButton.addEventListener("click", () => {
   if (activeMemberContainer) {
     memberContainer.style.display = "none";
   } else {
-    memberContainer.style.display = "block";
+    memberContainer.style.display = "flex";
   }
 
   activeMemberContainer = !activeMemberContainer;
@@ -25,7 +25,7 @@ chatButton.addEventListener("click", () => {
   if (activeChatContainer) {
     chatContainer.style.display = "none";
   } else {
-    chatContainer.style.display = "block";
+    chatContainer.style.display = "flex";
   }
 
   activeChatContainer = !activeChatContainer;

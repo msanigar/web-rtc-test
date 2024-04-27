@@ -23,7 +23,26 @@ let addMemberToDom = async (MemberId) => {
 
 let updateMemberTotal = async (members) => {
   let total = document.getElementById("members__count");
+  console.warn('number of participants: ', members.length)
   total.innerText = members.length;
+  if(members.length >= 3) {
+    console.warn('we are now in a group call!')
+    document.getElementById('streams__container').classList.add('group');
+    document.getElementById('streams__container').classList.remove('onetoone');
+    document.getElementById('streams__container').classList.remove('solo');
+  }
+  if(members.length === 2) {
+    console.warn('we are now in a one-to-one call!')
+    document.getElementById('streams__container').classList.add('onetoone');
+    document.getElementById('streams__container').classList.remove('solo');
+    document.getElementById('streams__container').classList.remove('group');
+  }
+  if(members.length === 1) {
+    console.warn('we are now in a solo call!')
+    document.getElementById('streams__container').classList.add('solo');
+    document.getElementById('streams__container').classList.remove('onetoone');
+    document.getElementById('streams__container').classList.remove('group');
+  }
 };
 
 let handleMemberLeft = async (MemberId) => {
