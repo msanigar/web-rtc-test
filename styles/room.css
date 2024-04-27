@@ -360,10 +360,34 @@ h3.title {
   border-radius: 0;
 }
 
-#streams__container.onetoone .video-player.local-stream div video {
+@media (max-width: 768px) {
+  #streams__container.onetoone .video-player.local-stream {
+    position: initial;
+    max-width: 768px;
+    height: 40vh;
+  }
+}
+
+@media (max-width: 768px) {
+  #streams__container.onetoone .video-player {
+    position: initial;
+    max-width: 768px;
+    height: 40vh;
+    width: auto;
+  }
+}
+
+@media (max-width: 768px) {
+  #streams__container.onetoone .video-player div video {
+    height: 40vh !important;
+    width: 100% !important;
+  }
+}
+
+#streams__container.onetoone .video-player div video {
     object-fit: cover !important;
 }
 
-#streams__container.onetoone .video-player.remote-stream {
+#streams__container.onetoone .video-player {
   height: calc(100vh - 94px);
 }
