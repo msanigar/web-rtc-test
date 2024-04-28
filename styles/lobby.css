@@ -52,7 +52,7 @@
 .form__field__wrapper button[type="submit"] {
   margin-top: 32px;
   cursor: pointer;
-  background-color: #845695;
+  background-color: #01caf2;
   border: none;
   color: #fff;
   font-size: 16px;
@@ -86,9 +86,9 @@
 }
 
 .avatar__option__selected {
-  border: 3px solid #845695;
+  border: 3px solid #01caf2;
 }
 
 h3.title {
-  color: #845695;
+  color: #01caf2;
 }

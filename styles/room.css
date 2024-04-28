@@ -128,7 +128,7 @@
 
 .message__author__bot {
   margin-right: 10px;
-  color: #845695 !important;
+  color: #01caf2 !important;
 }
 
 .message__text {
@@ -314,11 +314,11 @@
 
 .stream__actions a.active,
 .stream__actions button.active {
-  background-color: #845695;
+  background-color: #01caf2;
 }
 
 h3.title {
-  color: #845695;
+  color: #01caf2;
 }
 
 .video-player div {

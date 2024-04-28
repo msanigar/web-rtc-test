@@ -19,7 +19,7 @@
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: #845695;
+  background: #01caf2;
 }
 
 body {
@@ -84,7 +84,7 @@ a {
 
 #create__room__btn {
   display: block;
-  background-color: #845695;
+  background-color: #01caf2;
   padding: 8px 24px;
   font-size: 14px;
   font-weight: 500;
@@ -92,7 +92,7 @@ a {
 }
 
 #create__room__btn:hover {
-  background-color: #845695;
+  background-color: #01caf2;
 }
 
 .nav--list {
@@ -110,7 +110,7 @@ a {
 
 #members__button:hover svg > path,
 #chat__button:hover svg {
-  fill: #845695;
+  fill: #01caf2;
 }
 
 @media (max-width: 640px) {
@@ -131,4 +131,25 @@ a {
   #create__room__btn:hover {
     background-color: transparent;
   }
+}
+
+#logo {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  font-size: 22px;
+  font-weight: 700;
+  line-height: 0;
+  margin: 0;
+  color: #ebe0e0;
+}
+
+@media (max-width: 640px) {
+  #logo span {
+    display: none;
+  }
+}
+
+#logo img {
+  height: 42px;
 }
