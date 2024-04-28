@@ -61,11 +61,11 @@ let joinStream = async (isLocal = false) => {
 
   localTracks = await AgoraRTC.createMicrophoneAndCameraTracks(
     {
-        microphone: {
-            AEC: true,
-            ANS: true,
-            AGC: true
-        }
+      microphone: {
+        AEC: true,
+        ANS: true,
+        AGC: true,
+      },
     },
     {
       encoderConfig: {
@@ -78,9 +78,9 @@ let joinStream = async (isLocal = false) => {
   let player;
 
   if (isLocal) {
-    player =  `<div class="video-player local-stream" id="user-${uid}"></div>`
+    player = `<div class="video-player local-stream" id="user-${uid}"></div>`;
   } else {
-    player = `<div class="video-player" id="user-${uid}"></div>`
+    player = `<div class="video-player" id="user-${uid}"></div>`;
   }
   document
     .getElementById("streams__container")
@@ -124,7 +124,6 @@ let handleUserPublished = async (user, mediaType) => {
   if (mediaType === "audio") {
     user.audioTrack.play();
   }
-
 };
 
 let handleUserLeft = async (user) => {
@@ -164,43 +163,58 @@ let toggleCamera = async (e) => {
 };
 
 let toggleScreen = async (e) => {
-    let screenButton = e.currentTarget
-    let cameraButton = document.getElementById('camera-btn')
+  let screenButton = e.currentTarget;
+  let cameraButton = document.getElementById("camera-btn");
 
-    if(!sharingScreen){
-        sharingScreen = true
+  if (!sharingScreen) {
+    sharingScreen = true;
 
-        screenButton.classList.add('active')
-        cameraButton.classList.remove('active')
-        cameraButton.style.display = 'none'
+    localScreenTracks = await AgoraRTC.createScreenVideoTrack();
 
-        localScreenTracks = await AgoraRTC.createScreenVideoTrack()
+    document.getElementById("streams__container").style.display = "none";
+    displayFrame.style.display = "flex";
 
-        document.getElementById(`user-${uid}`).remove()
-        displayFrame.style.display = 'block'
+    let player = `<div class="video-player" id="user-${uid}"></div>`;
 
-        let player = `<div class="video__container" id="user-${uid}">
-                <div class="video-player" id="user-${uid}"></div>
-            </div>`
+    displayFrame.insertAdjacentHTML("beforeend", player);
 
-        displayFrame.insertAdjacentHTML('beforeend', player)
+    userIdInDisplayFrame = `user-${uid}`;
+    localScreenTracks.play(`user-${uid}`);
 
-        userIdInDisplayFrame = `user-${uid}`
-        localScreenTracks.play(`user-${uid}`)
+    await client.unpublish([localTracks[1]]);
+    await client.publish([localScreenTracks]);
 
-        await client.unpublish([localTracks[1]])
-        await client.publish([localScreenTracks])
+    screenButton.style.display = 'none'
+    cameraButton.classList.remove('active')
+    cameraButton.style.display = 'none'
 
+    // handle chrome 'stop sharing'
+    localScreenTracks.on("track-ended", async () => {
+      sharingScreen = false;
+      await client.unpublish([localScreenTracks]);
+      cameraButton.style.display = "block";
+      displayFrame.style.display = "none";
+      screenButton.style.display = "block"
+      document.getElementById("streams__container").style.display = "flex";
+      document.getElementById(`user-${uid}`).remove();
+      console.warn("unpublish localScreenTracks");
+      hideDisplayFrame();
+      switchToCamera();
+    });
 
-    }else{
-        sharingScreen = false 
-        cameraButton.style.display = 'block'
-        document.getElementById(`user-${uid}`).remove()
-        await client.unpublish([localScreenTracks])
-
-        switchToCamera()
-    }
-}
+  } else {
+    sharingScreen = false;
+    cameraButton.style.display = "block";
+    displayFrame.style.display = "none";
+    screenButton.style.display = "block"
+    document.getElementById("streams__container").style.display = "flex";
+    document.getElementById(`user-${uid}`).remove();
+    await client.unpublish([localScreenTracks]);
+    console.warn("unpublish localScreenTracks");
+    hideDisplayFrame();
+    switchToCamera();
+  }
+};
 
 let leaveStream = async (e) => {
   e.preventDefault();
@@ -220,6 +234,11 @@ let leaveStream = async (e) => {
     displayFrame.style.display = null;
   }
 
+  if (localScreenTracks) {
+    console.warn("leaveStream localScreenTracks");
+    await client.unpublish([localScreenTracks]);
+  }
+
   channel.sendMessage({
     text: JSON.stringify({ type: "user_left", uid: uid }),
   });
@@ -227,12 +246,11 @@ let leaveStream = async (e) => {
   setTimeout(() => {
     window.location = "index.html";
   }, 1000);
-
 };
 
 document.getElementById("camera-btn").addEventListener("click", toggleCamera);
 document.getElementById("mic-btn").addEventListener("click", toggleMic);
 document.getElementById("leave-btn").addEventListener("click", leaveStream);
-document.getElementById('screen-btn').addEventListener('click', toggleScreen)
+document.getElementById("screen-btn").addEventListener("click", toggleScreen);
 
 joinRoomInit();

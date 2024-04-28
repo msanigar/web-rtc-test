@@ -35,7 +35,6 @@ let displayFrame = document.getElementById("stream__box");
 let videoFrames = document.getElementsByClassName("video__container");
 let userIdInDisplayFrame = null;
 
-
 let hideDisplayFrame = () => {
   userIdInDisplayFrame = null;
   displayFrame.style.display = null;
@@ -48,5 +47,3 @@ let hideDisplayFrame = () => {
     videoFrames[i].style.width = "300px";
   }
 };
-
-displayFrame.addEventListener("click", hideDisplayFrame);

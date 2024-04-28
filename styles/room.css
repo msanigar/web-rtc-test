@@ -173,8 +173,9 @@
 
 #stream__box {
   background-color: #3f434a;
-  height: 60vh;
   display: none;
+  height: 100vh;
+  width: 100vw;
 }
 
 #stream__box .video__container {
@@ -188,6 +189,10 @@
 
 #stream__box video {
   border-radius: 0;
+}
+
+#stream__box .video-player div video {
+  object-fit: contain !important;
 }
 
 #streams__container {
@@ -385,7 +390,7 @@ h3.title {
 }
 
 #streams__container.onetoone .video-player div video {
-    object-fit: cover !important;
+  object-fit: cover !important;
 }
 
 #streams__container.onetoone .video-player {
