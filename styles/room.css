@@ -197,14 +197,10 @@
 
 #streams__container {
   display: flex;
-  gap: 10px;
-  padding: 10px;
   width: 100%;
-  height: calc(100vh - 94px);
+  height: calc(100vh - 74px);
   align-items: center;
   justify-content: center;
-  margin-top: 25px;
-  margin-bottom: 225px;
 }
 
 .video__container {
@@ -338,40 +334,14 @@ h3.title {
 
 .video-player {
   width: 100%;
+  height: calc(100vh - 74px);
   border-radius: 8px;
 }
 
 .video-player div video {
   position: inherit !important;
   width: 100%;
-  object-fit: fill !important;
-}
-
-#streams__container.group {
-  display: grid;
-  align-items: normal;
-  grid-template-columns: repeat(1, 1fr);
-  width: 100vw;
-  height: calc(100vh - 94px);
-  gap: 10px;
-}
-
-@media (min-width: 600px) {
-  #streams__container.group {
-    grid-template-columns: repeat(2, 1fr);
-  }
-}
-
-@media (min-width: 900px) {
-  #streams__container.group {
-    grid-template-columns: repeat(3, 1fr);
-  }
-}
-
-#streams__container.group div video {
-  object-fit: cover !important;
-  width: 100%;
-  height: 100%;
+  object-fit: fill;
 }
 
 #streams__container.onetoone {
@@ -385,38 +355,61 @@ h3.title {
   max-width: 320px;
   height: 240px;
   top: 36px;
-  right: 10px;
+  right: 36px;
   border-radius: 0;
 }
 
-@media (max-width: 768px) {
+@media (orientation: portrait) and (max-width: 768px) {
   #streams__container.onetoone .video-player.local-stream {
-    position: initial;
-    max-width: 768px;
-    height: 40vh;
+    position: absolute;
+    max-width: 25%;
+    height: 25%;
+    top: 12px;
+    right: 10px;
+    border-radius: 0;
   }
-}
 
-@media (max-width: 768px) {
-  #streams__container.onetoone .video-player {
-    position: initial;
-    max-width: 768px;
-    height: 40vh;
-    width: auto;
-  }
-}
-
-@media (max-width: 768px) {
   #streams__container.onetoone .video-player div video {
-    height: 40vh !important;
-    width: 100% !important;
+    object-fit: cover !important;
+  }
+
+  #streams__container.onetoone .video-player {
+    height: calc(100vh - 74px);
   }
 }
 
-#streams__container.onetoone .video-player div video {
-  object-fit: cover !important;
+@media (orientation: landscape) and (max-height: 499px) {
+  #streams__container.onetoone .video-player.local-stream {
+    position: absolute;
+    max-width: 25%;
+    height: 40%;
+    top: 12px;
+    right: 10px;
+    border-radius: 0;
+  }
 }
 
-#streams__container.onetoone .video-player {
-  height: calc(100vh - 94px);
+@media (orientation: portrait) and (min-width: 769px) {
+  #streams__container.onetoone .video-player div video {
+    object-fit: cover !important;
+  }
+}
+
+/* handle up to 4 once 'group' has been added to container 
+we can use JS to update the grid at 5, 7, 9, 11
+we can safely consider 12 the max
+*/
+
+#streams__container.group {
+  display: grid;
+  align-items: normal;
+  grid-template-columns: repeat(2, 1fr);
+  grid-template-rows: repeat(2, 1fr);
+  width: 100vw;
+  height: calc(100vh - 74px);
+  gap: 10px;
+}
+
+#streams__container.group .video-player {
+  height: auto;
 }

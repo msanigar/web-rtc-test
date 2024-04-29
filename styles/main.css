@@ -192,3 +192,26 @@ a {
   top: -40px;
   right: 0;
 }
+
+@media (orientation: portrait) and (max-width: 768px) {
+  #streams__container.solo {
+    height: 100vh;
+    gap: 0;
+    padding: 0;
+    margin-top: 0;
+    margin-bottom: 0;
+  }
+
+  #streams__container.solo .video-player {
+    height: 100%;
+  }
+
+  #streams__container.solo .video-player div {
+    height: calc(100vh - 74px);
+  }
+
+  #streams__container.solo .video-player div video {
+    height: 100%;
+    object-fit: cover !important;
+  }
+}
