@@ -55,49 +55,33 @@ async function populateDeviceLists() {
 }
 
 async function changeDevice(trackKind, deviceId) {
-  console.warn(
-    "Attempting to change device for:",
-    trackKind,
-    "to device ID:",
-    deviceId
-  );
+  console.warn("Attempting to change device for:", trackKind, "to device ID:", deviceId);
   console.warn("Current local tracks:", localTracks);
 
-  const trackIndex = localTracks.findIndex((t) => {
-    return (
-      (trackKind === "video" && t.getType() === "video") ||
-      (trackKind === "audio" && t.getType() === "audio")
-    );
-  });
+  const trackIndex = localTracks.findIndex(t => t.trackMediaType === trackKind);
 
   if (trackIndex !== -1) {
     let oldTrack = localTracks[trackIndex];
     await oldTrack.stop();
-    await oldTrack.close();
+    await oldTrack.close(); 
     localTracks.splice(trackIndex, 1);
+
 
     let newTrack;
     if (trackKind === "video") {
       newTrack = await AgoraRTC.createCameraVideoTrack({ cameraId: deviceId });
     } else if (trackKind === "audio") {
-      newTrack = await AgoraRTC.createMicrophoneAudioTrack({
-        microphoneId: deviceId,
-      });
+      newTrack = await AgoraRTC.createMicrophoneAudioTrack({ microphoneId: deviceId });
     }
 
     if (newTrack) {
       localTracks.push(newTrack);
-      await client.unpublish([oldTrack]);
-      await client.publish([newTrack]);
-      newTrack.play(`user-${uid}`);
+      await client.unpublish([oldTrack]); 
+      await client.publish([newTrack]); 
+      newTrack.play(`user-${uid}`); 
     }
   } else {
-    console.warn(
-      "No track of type",
-      trackKind,
-      "found in localTracks:",
-      localTracks
-    );
+    console.warn("No track of type", trackKind, "found in localTracks:", localTracks);
   }
 }
 
