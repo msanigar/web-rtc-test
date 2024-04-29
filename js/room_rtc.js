@@ -200,16 +200,23 @@ let handleUserLeft = async (user) => {
 
 let toggleMic = async (e) => {
   let button = e.currentTarget;
-  let micTrack = localTracks.find(t => t.trackMediaType === 'audio');  // Correctly identify the microphone track
-
+  let micTrack = localTracks.find(t => t.trackMediaType === 'audio');
+  
   if (micTrack) {
+    console.warn("Current mute state before toggle:", micTrack.isMuted);
     if (micTrack.isMuted) {
       await micTrack.setMuted(false);
+      micTrack.isMuted = false; 
       button.classList.add("active");
     } else {
       await micTrack.setMuted(true);
+      micTrack.isMuted = true;  
       button.classList.remove("active");
     }
+
+    console.warn("Current mute state after toggle:", micTrack.isMuted);
+  } else {
+    console.warn("No audio track found in localTracks.");
   }
 };
 
