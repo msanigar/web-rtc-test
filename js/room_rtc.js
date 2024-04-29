@@ -12,6 +12,8 @@ let client;
 let rtmClient;
 let channel;
 
+let modalOpen = false;
+
 const queryString = window.location.search;
 const urlParams = new URLSearchParams(queryString);
 let roomId = urlParams.get("room")?.toLowerCase();
@@ -223,6 +225,16 @@ let toggleCamera = async (e) => {
   }
 };
 
+let toggleSettings = async (e) => {
+  if(!modalOpen) {
+    modalOpen = true;
+    document.getElementById("modal").style.display = "block";
+  } else {
+    modalOpen = false;
+    document.getElementById("modal").style.display = "none";
+  }
+};
+
 let toggleScreen = async (e) => {
   let screenButton = e.currentTarget;
   let cameraButton = document.getElementById("camera-btn");
@@ -309,6 +321,8 @@ let leaveStream = async (e) => {
 };
 
 document.getElementById("camera-btn").addEventListener("click", toggleCamera);
+document.getElementById("settings-btn").addEventListener("click", toggleSettings);
+document.getElementById("close-btn").addEventListener("click", toggleSettings);
 document.getElementById("mic-btn").addEventListener("click", toggleMic);
 document.getElementById("leave-btn").addEventListener("click", leaveStream);
 document.getElementById("screen-btn").addEventListener("click", toggleScreen);

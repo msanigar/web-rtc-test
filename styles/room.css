@@ -297,7 +297,8 @@
 }
 
 .stream__actions a,
-.stream__actions button {
+.stream__actions button,
+#modal button {
   cursor: pointer;
   background-color: #262626;
   color: #fff;
@@ -311,7 +312,8 @@
 }
 
 .stream__actions a svg,
-.stream__actions button svg {
+.stream__actions button svg,
+#modal button svg {
   width: 1.5rem;
   height: 1.5rem;
   fill: #ede0e0;
