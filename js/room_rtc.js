@@ -55,28 +55,32 @@ async function populateDeviceLists() {
 }
 
 async function changeDevice(trackKind, deviceId) {
-  const trackIndex = localTracks.findIndex((t) => t.getType() === trackKind);
+  console.warn("Changing device for:", trackKind, "to device ID:", deviceId);
+  const trackIndex = localTracks.findIndex(t => t.type === trackKind);
   if (trackIndex !== -1) {
-    let track = localTracks[trackIndex];
-    await track.close();
-    localTracks.splice(trackIndex, 1);
+    let oldTrack = localTracks[trackIndex];
+    await oldTrack.stop();  
+    await oldTrack.close();
+    localTracks.splice(trackIndex, 1); 
 
+
+    let newTrack;
     if (trackKind === "video") {
-      track = await AgoraRTC.createCameraVideoTrack({
-        deviceId: { exact: deviceId },
-      });
+      newTrack = await AgoraRTC.createCameraVideoTrack({ cameraId: deviceId });
     } else if (trackKind === "audio") {
-      track = await AgoraRTC.createMicrophoneAudioTrack({
-        deviceId: { exact: deviceId },
-      });
+      newTrack = await AgoraRTC.createMicrophoneAudioTrack({ microphoneId: deviceId });
     }
 
-    localTracks.push(track);
-    await client.unpublish([track]);
-    await client.publish([track]);
-    if (trackKind === "video") {
-      track.play(`user-${uid}`);
+    if (newTrack) {
+      localTracks.push(newTrack); 
+      await client.unpublish([oldTrack]); 
+      await client.publish([newTrack]); 
+      if (trackKind === "video") {
+        newTrack.play(`user-${uid}`); 
+      }
     }
+  } else {
+    console.warn("No track of type", trackKind, "found!");
   }
 }
 
