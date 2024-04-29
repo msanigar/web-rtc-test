@@ -56,16 +56,14 @@ async function populateDeviceLists() {
 
 async function changeDevice(trackKind, deviceId) {
   console.warn("Attempting to change device for:", trackKind, "to device ID:", deviceId);
-  console.warn("Current local tracks:", localTracks);
-
+  
   const trackIndex = localTracks.findIndex(t => t.trackMediaType === trackKind);
-
   if (trackIndex !== -1) {
     let oldTrack = localTracks[trackIndex];
     const wasMuted = oldTrack.isMuted;
 
     await oldTrack.stop();
-    await oldTrack.close(); 
+    await oldTrack.close();
     localTracks.splice(trackIndex, 1);
 
     let newTrack;
@@ -73,17 +71,17 @@ async function changeDevice(trackKind, deviceId) {
       newTrack = await AgoraRTC.createCameraVideoTrack({ cameraId: deviceId });
     } else if (trackKind === "audio") {
       newTrack = await AgoraRTC.createMicrophoneAudioTrack({ microphoneId: deviceId });
-      newTrack.isMuted = wasMuted;
       if (wasMuted) {
         await newTrack.setMuted(true);
       }
     }
 
     if (newTrack) {
+      newTrack.isMuted = wasMuted;
       localTracks.push(newTrack);
-      await client.unpublish([oldTrack]); 
-      await client.publish([newTrack]); 
-      newTrack.play(`user-${uid}`); 
+      await client.unpublish([oldTrack]);
+      await client.publish([newTrack]);
+      newTrack.play(`user-${uid}`);
     }
   } else {
     console.warn("No track of type", trackKind, "found in localTracks:", localTracks);
@@ -200,13 +198,16 @@ let handleUserLeft = async (user) => {
 
 let toggleMic = async (e) => {
   let button = e.currentTarget;
+  let micTrack = localTracks.find(t => t.trackMediaType === 'audio');  // Correctly identify the microphone track
 
-  if (localTracks[0].muted) {
-    await localTracks[0].setMuted(false);
-    button.classList.add("active");
-  } else {
-    await localTracks[0].setMuted(true);
-    button.classList.remove("active");
+  if (micTrack) {
+    if (micTrack.isMuted) {
+      await micTrack.setMuted(false);
+      button.classList.add("active");
+    } else {
+      await micTrack.setMuted(true);
+      button.classList.remove("active");
+    }
   }
 };
 
