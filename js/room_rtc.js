@@ -55,12 +55,28 @@ async function populateDeviceLists() {
 }
 
 async function changeDevice(trackKind, deviceId) {
-  const tracks =
-    trackKind === "video"
-      ? localTracks.filter((t) => t.track.kind === "video")
-      : localTracks.filter((t) => t.track.kind === "audio");
-  if (tracks.length > 0) {
-    await tracks[0].setDevice(deviceId);
+  const trackIndex = localTracks.findIndex((t) => t.getType() === trackKind);
+  if (trackIndex !== -1) {
+    let track = localTracks[trackIndex];
+    await track.close();
+    localTracks.splice(trackIndex, 1);
+
+    if (trackKind === "video") {
+      track = await AgoraRTC.createCameraVideoTrack({
+        deviceId: { exact: deviceId },
+      });
+    } else if (trackKind === "audio") {
+      track = await AgoraRTC.createMicrophoneAudioTrack({
+        deviceId: { exact: deviceId },
+      });
+    }
+
+    localTracks.push(track);
+    await client.unpublish([track]);
+    await client.publish([track]);
+    if (trackKind === "video") {
+      track.play(`user-${uid}`);
+    }
   }
 }
 
