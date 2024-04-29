@@ -62,16 +62,21 @@ async function changeDevice(trackKind, deviceId) {
 
   if (trackIndex !== -1) {
     let oldTrack = localTracks[trackIndex];
+    const wasMuted = oldTrack.isMuted;
+
     await oldTrack.stop();
     await oldTrack.close(); 
     localTracks.splice(trackIndex, 1);
-
 
     let newTrack;
     if (trackKind === "video") {
       newTrack = await AgoraRTC.createCameraVideoTrack({ cameraId: deviceId });
     } else if (trackKind === "audio") {
       newTrack = await AgoraRTC.createMicrophoneAudioTrack({ microphoneId: deviceId });
+      newTrack.isMuted = wasMuted;
+      if (wasMuted) {
+        await newTrack.setMuted(true);
+      }
     }
 
     if (newTrack) {
