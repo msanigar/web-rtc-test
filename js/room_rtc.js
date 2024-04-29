@@ -266,7 +266,6 @@ let toggleScreen = async (e) => {
     await client.publish([localScreenTracks]);
 
     screenButton.style.display = "none";
-    cameraButton.classList.remove("active");
     cameraButton.style.display = "none";
 
     // handle chrome 'stop sharing'
