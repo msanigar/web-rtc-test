@@ -31,6 +31,39 @@ let remoteUsers = {};
 let localScreenTracks;
 let sharingScreen = false;
 
+async function populateDeviceLists() {
+  let videoInputSelect = document.getElementById("videoInputSelect");
+  let audioInputSelect = document.getElementById("audioInputSelect");
+  let audioOutputSelect = document.getElementById("audioOutputSelect");
+
+  console.warn("populating device list");
+
+  await navigator.mediaDevices.enumerateDevices().then(function (devices) {
+    devices.forEach((device) => {
+      let option = document.createElement("option");
+      option.value = device.deviceId;
+      option.text = device.label || `${device.kind}: ${device.deviceId}`;
+      if (device.kind === "videoinput" && videoInputSelect) {
+        videoInputSelect.appendChild(option);
+      } else if (device.kind === "audioinput" && audioInputSelect) {
+        audioInputSelect.appendChild(option);
+      } else if (device.kind === "audiooutput" && audioOutputSelect) {
+        audioOutputSelect.appendChild(option);
+      }
+    });
+  });
+}
+
+async function changeDevice(trackKind, deviceId) {
+  const tracks =
+    trackKind === "video"
+      ? localTracks.filter((t) => t.track.kind === "video")
+      : localTracks.filter((t) => t.track.kind === "audio");
+  if (tracks.length > 0) {
+    await tracks[0].setDevice(deviceId);
+  }
+}
+
 let joinRoomInit = async () => {
   rtmClient = await AgoraRTM.createInstance(APP_ID);
   await rtmClient.login({ uid, token });
@@ -88,6 +121,7 @@ let joinStream = async (isLocal = false) => {
 
   localTracks[1].play(`user-${uid}`);
   await client.publish([localTracks[0], localTracks[1]]);
+  populateDeviceLists();
 };
 
 let switchToCamera = async () => {
@@ -184,9 +218,9 @@ let toggleScreen = async (e) => {
     await client.unpublish([localTracks[1]]);
     await client.publish([localScreenTracks]);
 
-    screenButton.style.display = 'none'
-    cameraButton.classList.remove('active')
-    cameraButton.style.display = 'none'
+    screenButton.style.display = "none";
+    cameraButton.classList.remove("active");
+    cameraButton.style.display = "none";
 
     // handle chrome 'stop sharing'
     localScreenTracks.on("track-ended", async () => {
@@ -194,19 +228,18 @@ let toggleScreen = async (e) => {
       await client.unpublish([localScreenTracks]);
       cameraButton.style.display = "block";
       displayFrame.style.display = "none";
-      screenButton.style.display = "block"
+      screenButton.style.display = "block";
       document.getElementById("streams__container").style.display = "flex";
       document.getElementById(`user-${uid}`).remove();
       console.warn("unpublish localScreenTracks");
       hideDisplayFrame();
       switchToCamera();
     });
-
   } else {
     sharingScreen = false;
     cameraButton.style.display = "block";
     displayFrame.style.display = "none";
-    screenButton.style.display = "block"
+    screenButton.style.display = "block";
     document.getElementById("streams__container").style.display = "flex";
     document.getElementById(`user-${uid}`).remove();
     await client.unpublish([localScreenTracks]);
@@ -252,5 +285,28 @@ document.getElementById("camera-btn").addEventListener("click", toggleCamera);
 document.getElementById("mic-btn").addEventListener("click", toggleMic);
 document.getElementById("leave-btn").addEventListener("click", leaveStream);
 document.getElementById("screen-btn").addEventListener("click", toggleScreen);
+document
+  .getElementById("videoInputSelect")
+  .addEventListener("change", async (event) => {
+    await changeDevice("video", event.target.value);
+  });
+
+document
+  .getElementById("audioInputSelect")
+  .addEventListener("change", async (event) => {
+    await changeDevice("audio", event.target.value);
+  });
+
+document
+  .getElementById("audioOutputSelect")
+  .addEventListener("change", async (event) => {
+    const audioOutputDeviceId = event.target.value;
+    const audioElement = document.querySelector("audio");
+    if (audioElement && audioElement.setSinkId) {
+      audioElement.setSinkId(audioOutputDeviceId).catch((error) => {
+        console.error("Error assigning audio output device.", error);
+      });
+    }
+  });
 
 joinRoomInit();
